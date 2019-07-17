@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sdc-deploy
+  labels:
+    app: sdc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sdc
+  template:
+    metadata:
+      labels:
+        app: sdc
+    spec:
+      volumes:
+      - name: task-pv-storage
+        hostPath:
+          path: /data
+      initContainers:
+      - name: take-data-dir-ownership
+        image: alpine:3.6
+        command:
+        - chown
+        - -R  
+        - 20159:20159
+        - /data
+        volumeMounts:
+        - name: task-pv-storage
+          mountPath: /data
+      containers:    
+      - name: sdc-po
+        image: streamsets/datacollector:3.0.3.0
+        resources:
+         limits:
+          cpu: 300m
+         requests:
+          cpu: 300m
+        ports:
+        - containerPort: 18630
+        volumeMounts:
+        - name: task-pv-storage
+          mountPath: /data
+
+          
+          
+           
